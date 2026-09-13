@@ -132,6 +132,18 @@ python train.py --generations 50 --pop-size 40 --elites 6
 
 ---
 
+---
+
+## Documentation & Developer Guides
+
+Comprehensive technical guides for contributors and autonomous AI agents:
+
+* [**AI Agent Operating Guide**](docs/AGENT_GUIDE.md): Architecture invariants, file-by-file map, common workflows, and guardrails.
+* [**Checkpoint Specification**](docs/CHECKPOINT_SPEC.md): Tensor shapes, parameter flattening layout, WebGL JSON schema, and serialization code.
+* [**Training & Checkpoint Improvement**](docs/TRAINING_AND_IMPROVEMENT.md): CEM evolutionary dynamics, fine-tuning protocols (`--resume`), curriculum learning, and hyperparameter tables.
+
+---
+
 ## Frequently Asked Questions
 
 ### Is this a living organism?

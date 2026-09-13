@@ -6,7 +6,7 @@ import torch
 from minesweeper_env import MinesweeperEnv
 from fly_brain import FlyBrain
 
-SCRATCH_DIR = r"checkpoints"
+SCRATCH_DIR = "checkpoints"
 DEFAULT_MODEL_PATH = os.path.join(SCRATCH_DIR, "best_fly_model.pt")
 
 def evaluate_brain(brain, env, episodes=5, deterministic=True):
@@ -41,7 +41,35 @@ def evaluate_brain(brain, env, episodes=5, deterministic=True):
     safe_pct = (safe_reveals_total / (env.safe_cells_total * episodes)) * 100.0
     return mean_reward, win_rate, safe_pct
 
+def run_eval_only(args):
+    print("=" * 70)
+    print("  FLYSWEEPER: Model Evaluation Mode")
+    print("=" * 70)
+    env = MinesweeperEnv(rows=args.rows, cols=args.cols, num_mines=args.mines)
+    brain = FlyBrain(num_board_cells=args.rows * args.cols)
+    
+    target_model = args.resume or args.model_path
+    if not os.path.exists(target_model):
+        raise FileNotFoundError(f"Checkpoint not found at: {target_model}")
+
+    print(f"Loading weights from: {target_model}")
+    brain.load_weights(target_model)
+    print(brain.summary())
+    print(f"Grid: {args.rows}x{args.cols} ({args.mines} mines) | Test Episodes: {args.eval_episodes}")
+    print("-" * 70)
+
+    mean_rew, win_rate, safe_pct = evaluate_brain(brain, env, episodes=args.eval_episodes, deterministic=True)
+    print(f"Results across {args.eval_episodes} episodes:")
+    print(f"  * Safe Reveal Accuracy: {safe_pct:5.2f}%")
+    print(f"  * Game Win Rate:        {win_rate * 100:5.2f}%")
+    print(f"  * Mean Reward:          {mean_rew:6.2f}")
+    print("=" * 70)
+
 def train_cem(args):
+    if args.eval_only:
+        run_eval_only(args)
+        return
+
     print("=" * 70)
     print("  FLYSWEEPER: MaleCNS v1.0 Drosophila Connectome Training")
     print("=" * 70)
@@ -54,14 +82,28 @@ def train_cem(args):
     print("-" * 70)
 
     # Initial parameter distribution
+    if args.resume:
+        if not os.path.exists(args.resume):
+            raise FileNotFoundError(f"Resume checkpoint not found: {args.resume}")
+        print(f"Resuming training from checkpoint: {args.resume}")
+        brain.load_weights(args.resume)
+        init_std_val = args.init_std if args.init_std is not None else 0.15
+    else:
+        init_std_val = args.init_std if args.init_std is not None else 0.40
+
     init_params = brain.get_parameters_flat()
     param_dim = len(init_params)
     mean = np.copy(init_params)
-    std = np.ones(param_dim, dtype=np.float32) * 0.4
+    std = np.ones(param_dim, dtype=np.float32) * init_std_val
 
-    best_overall_reward = -float("inf")
+    # Initial baseline evaluation
+    baseline_rew, baseline_win, baseline_safe = evaluate_brain(brain, env, episodes=args.eval_episodes, deterministic=True)
+    print(f"Starting Baseline -> Rew: {baseline_rew:.2f} | Win Rate: {baseline_win * 100:.1f}% | Safe: {baseline_safe:.1f}% | Init Std: {init_std_val:.3f}")
+    print("-" * 70)
+
+    best_overall_reward = baseline_rew
     best_overall_params = np.copy(mean)
-    best_win_rate = 0.0
+    best_win_rate = baseline_win
 
     start_time = time.time()
 
@@ -88,7 +130,7 @@ def train_cem(args):
 
         # Update distribution towards elite population
         new_mean = np.mean(elites, axis=0)
-        new_std = np.std(elites, axis=0) + 0.05  # minimum exploration noise
+        new_std = np.std(elites, axis=0) + 0.05  # minimum exploration noise floor
 
         mean = 0.8 * mean + 0.2 * new_mean
         std = 0.8 * std + 0.2 * new_std
@@ -137,6 +179,9 @@ if __name__ == "__main__":
     parser.add_argument("--cols", type=int, default=6, help="Board cols")
     parser.add_argument("--mines", type=int, default=4, help="Number of mines")
     parser.add_argument("--model-path", type=str, default=DEFAULT_MODEL_PATH, help="Path to save best weights")
+    parser.add_argument("--resume", type=str, default=None, help="Path to existing checkpoint to resume training from")
+    parser.add_argument("--init-std", type=float, default=None, help="Initial noise std (default: 0.40 for scratch, 0.15 for resume)")
+    parser.add_argument("--eval-only", action="store_true", help="Run evaluation only without training")
     args = parser.parse_args()
 
     train_cem(args)
