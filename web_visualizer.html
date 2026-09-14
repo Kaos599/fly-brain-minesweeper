@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlySweeper — Drosophila Connectome 3D Brain Visualizer</title>
+  <title>FlySweeper: Drosophila Connectome 3D Brain Visualizer & Fly Avatar</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
@@ -27,23 +27,25 @@
       pointer-events: none;
       display: flex;
       justify-content: space-between;
-      padding: 24px;
+      padding: 20px;
     }
     .panel {
-      background: rgba(13, 17, 23, 0.82);
-      backdrop-filter: blur(16px);
+      background: rgba(13, 17, 23, 0.85);
+      backdrop-filter: blur(18px);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 16px;
-      padding: 20px;
+      padding: 18px;
       pointer-events: auto;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08);
     }
-    /* Left Panel: Minesweeper */
+    /* Left Panel: Minesweeper + Fly Cockpit */
     .game-panel {
-      width: 380px;
+      width: 390px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
+      max-height: 96vh;
+      overflow-y: auto;
     }
     .header-row {
       display: flex;
@@ -51,7 +53,7 @@
       align-items: center;
     }
     .title {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       letter-spacing: 0.5px;
       color: #f8fafc;
@@ -72,12 +74,12 @@
     .status-bar {
       display: flex;
       justify-content: space-between;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px 12px;
       border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 13px;
+      font-size: 12px;
     }
     .status-val { font-weight: 700; }
     .status-val.mines { color: #f43f5e; }
@@ -88,9 +90,9 @@
     .grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 6px;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 10px;
+      gap: 5px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 8px;
       border-radius: 12px;
     }
     .tile {
@@ -100,7 +102,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 800;
       cursor: pointer;
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -112,13 +114,13 @@
       transform: translateY(-1px);
     }
     .tile.revealed {
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(15, 23, 42, 0.65);
       border: 1px solid rgba(255, 255, 255, 0.05);
       box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
     }
     .tile.last-action {
       border: 2px solid #eab308;
-      box-shadow: 0 0 12px rgba(234, 179, 8, 0.6);
+      box-shadow: 0 0 14px rgba(234, 179, 8, 0.7);
     }
     .tile.mine {
       background: radial-gradient(circle, #f43f5e, #881337);
@@ -132,23 +134,23 @@
     /* Controls */
     .controls {
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
     button {
       flex: 1;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.12);
       color: #f1f5f9;
-      padding: 9px 12px;
+      padding: 8px 10px;
       border-radius: 8px;
       font-weight: 600;
-      font-size: 12px;
+      font-size: 11px;
       cursor: pointer;
       transition: all 0.2s;
     }
     button:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.28);
     }
     button.primary {
       background: #2563eb;
@@ -157,39 +159,79 @@
     button.primary:hover {
       background: #1d4ed8;
     }
+    button.active-btn {
+      background: #0284c7;
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    }
 
-    /* Right Panel: Brain Telemetry & Legend */
+    /* Fly Cockpit & Thought Stream */
+    .cockpit-box {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+    }
+    .cockpit-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #94a3b8;
+    }
+    .fly-mood-badge {
+      font-weight: 700;
+      color: #38bdf8;
+      font-family: ui-monospace, monospace;
+    }
+    .thought-ticker {
+      background: rgba(15, 23, 42, 0.8);
+      border-left: 2px solid #38bdf8;
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-family: ui-monospace, monospace;
+      font-size: 10.5px;
+      color: #cbd5e1;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Right Panel: Brain Telemetry & Camera Views */
     .telemetry-panel {
       width: 320px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       align-self: flex-start;
     }
     .legend-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 12px;
+      font-size: 11px;
       color: #94a3b8;
     }
     .dot {
-      width: 10px;
-      height: 10px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       box-shadow: 0 0 8px currentColor;
     }
     .dot.input { background: #38bdf8; color: #38bdf8; }
     .dot.inter { background: #f59e0b; color: #f59e0b; }
     .dot.output { background: #ec4899; color: #ec4899; }
-    .dot.shell { background: #64748b; color: #64748b; }
+    .dot.fly { background: #fbbf24; color: #fbbf24; }
 
     .meter {
-      height: 6px;
+      height: 5px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 3px;
       overflow: hidden;
-      margin-top: 4px;
+      margin-top: 3px;
     }
     .meter-bar {
       height: 100%;
@@ -198,21 +240,22 @@
       transition: width 0.15s ease;
       box-shadow: 0 0 10px #ec4899;
     }
-
     .cam-btn-group {
-      display: flex;
-      gap: 6px;
-      margin-top: 4px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 5px;
+      margin-top: 2px;
     }
     .cam-btn {
-      flex: 1;
-      padding: 6px;
-      font-size: 11px;
+      padding: 5px;
+      font-size: 10.5px;
     }
   </style>
-  <!-- Three.js + Postprocessing Bloom -->
+
+  <!-- Three.js + Postprocessing Bloom + GLTFLoader -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
@@ -224,14 +267,14 @@
   <div id="canvas-container"></div>
 
   <div class="ui-layer">
-    <!-- Minesweeper Game Panel -->
+    <!-- Left Panel: Minesweeper Game + Fly Cockpit -->
     <div class="panel game-panel">
       <div class="header-row">
         <div class="title">
           <span>FlySweeper</span>
           <span class="badge">MaleCNS v1.0</span>
         </div>
-        <div style="font-size: 12px; color: #64748b;">Drosophila Agent</div>
+        <button id="btn-audio" style="flex:0; padding:4px 8px; font-size:11px;">🔊 Sound</button>
       </div>
 
       <div class="status-bar">
@@ -248,14 +291,39 @@
         <button id="btn-reset">New Board</button>
       </div>
 
-      <div style="font-size: 11px; color: #64748b; line-height: 1.4;">
-        Drag with mouse to rotate 3D fly brain. Scroll to zoom. The biological neural network calculates decisions in real-time.
+      <!-- Live Fly Biometrics Cockpit -->
+      <div class="cockpit-box">
+        <div class="cockpit-row">
+          <span>Drosophila State:</span>
+          <span id="fly-status-text" class="fly-mood-badge">HOVERING</span>
+        </div>
+        <div class="cockpit-row">
+          <span>Wingbeat Frequency:</span>
+          <span id="fly-wingbeat-text" style="color:#fbbf24; font-weight:700;">224 Hz</span>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; color:#94a3b8; font-size:10px;">
+            <span>Dopamine (PAM Cluster):</span>
+            <span id="txt-dopamine-val" style="color:#4ade80;">+100 Baseline</span>
+          </div>
+          <div class="meter"><div id="meter-dopamine" class="meter-bar" style="width: 70%; background: linear-gradient(90deg, #38bdf8, #4ade80);"></div></div>
+        </div>
+        <div class="cockpit-row" style="margin-top:2px;">
+          <span>Fly Thought Stream:</span>
+        </div>
+        <div id="thought-stream" class="thought-ticker">
+          [Sensory]: Scanning board for unrevealed boundary tiles...
+        </div>
+      </div>
+
+      <div style="font-size: 10.5px; color: #64748b; line-height: 1.4;">
+        Drag mouse to rotate 3D arena. Watch the 3D fly calculate decisions, pulse compound eyes, and fire neural targeting beams into the board.
       </div>
     </div>
 
-    <!-- Right Telemetry Panel -->
+    <!-- Right Panel: Connectome Telemetry & Camera Views -->
     <div class="panel telemetry-panel">
-      <div class="title" style="font-size: 15px;">Connectome Telemetry</div>
+      <div class="title" style="font-size: 14px;">Connectome Telemetry</div>
       
       <div>
         <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">
@@ -265,77 +333,198 @@
         <div class="meter"><div id="meter-firing" class="meter-bar" style="width: 25%;"></div></div>
       </div>
 
-      <div>
-        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">
-          <span>Dopamine Neuromodulation</span>
-          <span id="txt-dopamine" style="color: #38bdf8;">PAM Baseline</span>
-        </div>
-      </div>
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08);">
+
+      <div style="font-size: 11.5px; font-weight: 600; color: #cbd5e1;">Visual Scene Architecture</div>
+      <div class="legend-row"><div class="dot fly"></div><span>Drosophila Melanogaster 3D Avatar</span></div>
+      <div class="legend-row"><div class="dot input"></div><span>Optic Lobes (LC4/LC11/LPLC) Visual Inputs</span></div>
+      <div class="legend-row"><div class="dot inter"></div><span>Central Complex & PVLP Reservoir</span></div>
+      <div class="legend-row"><div class="dot output"></div><span>Descending Trunk (DNp01) Motor Readouts</span></div>
 
       <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08);">
 
-      <div style="font-size: 12px; font-weight: 600; color: #cbd5e1;">Circuit Anatomy</div>
-      <div class="legend-row"><div class="dot input"></div><span>Optic Lobes (LC4/LC11/LPLC) — 32 Cells</span></div>
-      <div class="legend-row"><div class="dot inter"></div><span>Central Complex & PVLP — 32 Interneurons</span></div>
-      <div class="legend-row"><div class="dot output"></div><span>Descending Trunk (DNp/pIP) — 16 Motor DNs</span></div>
-      <div class="legend-row"><div class="dot shell"></div><span>Drosophila Neuropil Envelope Shell</span></div>
-
-      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08);">
-
-      <div style="font-size: 12px; font-weight: 600; color: #cbd5e1;">Camera Views</div>
+      <div style="font-size: 11.5px; font-weight: 600; color: #cbd5e1;">Cinematic Camera Presets</div>
       <div class="cam-btn-group">
-        <button id="cam-front" class="cam-btn">Frontal</button>
-        <button id="cam-dorsal" class="cam-btn">Dorsal</button>
-        <button id="cam-iso" class="cam-btn">Cinematic</button>
+        <button id="cam-arena" class="cam-btn active-btn">Arena View</button>
+        <button id="cam-fly" class="cam-btn">Fly Close-Up</button>
+        <button id="cam-brain" class="cam-btn">Connectome</button>
+        <button id="cam-director" class="cam-btn" style="color:#38bdf8;">Director Mode</button>
       </div>
     </div>
   </div>
 
   <script>
     /* =========================================================
-       1. Three.js Setup with Cinematic UnrealBloomPass
+       1. Synthesized Web Audio API Sound Effects (Zero Downloads)
+       ========================================================= */
+    let audioCtx = null;
+    let audioEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    document.getElementById('btn-audio').addEventListener('click', () => {
+      audioEnabled = !audioEnabled;
+      document.getElementById('btn-audio').innerText = audioEnabled ? '🔊 Sound' : '🔇 Muted';
+      if (audioEnabled) initAudio();
+    });
+
+    function playWingBuzz(duration = 0.18) {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(210 + Math.random() * 30, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(190, audioCtx.currentTime + duration);
+
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(800, audioCtx.currentTime);
+        filter.Q.setValueAtTime(3.0, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playNeuralChirp() {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(920, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1450, audioCtx.currentTime + 0.08);
+
+        gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.08);
+      } catch (e) {}
+    }
+
+    function playTileClick() {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(380, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(160, audioCtx.currentTime + 0.05);
+
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+      } catch (e) {}
+    }
+
+    function playBoom() {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(35, audioCtx.currentTime + 0.35);
+
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (e) {}
+    }
+
+    function playVictoryChime() {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.1);
+          gain.gain.setValueAtTime(0.06, audioCtx.currentTime + idx * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.1 + 0.25);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime + idx * 0.1);
+          osc.stop(audioCtx.currentTime + idx * 0.1 + 0.25);
+        });
+      } catch (e) {}
+    }
+
+    /* =========================================================
+       2. Three.js Scene Setup & UnrealBloomPass
        ========================================================= */
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x050608, 0.0018);
+    scene.fog = new THREE.FogExp2(0x050608, 0.0016);
 
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 3000);
-    camera.position.set(0, -60, 480);
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 4000);
+    camera.position.set(30, -10, 480);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.25;
     container.appendChild(renderer.domElement);
 
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.8;
-    controls.maxDistance = 900;
-    controls.minDistance = 100;
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 0.6;
+    controls.maxDistance = 1200;
+    controls.minDistance = 80;
 
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0x1e293b, 1.2);
+    const ambientLight = new THREE.AmbientLight(0x1e293b, 1.4);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.5);
+    const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.6);
     dirLight1.position.set(300, 400, 300);
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0xf43f5e, 1.0);
-    dirLight2.position.set(-300, -200, -300);
+    const dirLight2 = new THREE.DirectionalLight(0xf59e0b, 1.2);
+    dirLight2.position.set(-300, -200, -200);
     scene.add(dirLight2);
+
+    const flySpot = new THREE.PointLight(0x38bdf8, 2.0, 350);
+    flySpot.position.set(-200, 100, 150);
+    scene.add(flySpot);
 
     // Postprocessing Composer (UnrealBloomPass)
     const renderScene = new THREE.RenderPass(scene, camera);
     const bloomPass = new THREE.UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      1.8,  // Strength
-      0.6,  // Radius
-      0.15  // Threshold
+      1.75, // Strength
+      0.55, // Radius
+      0.16  // Threshold
     );
 
     const composer = new THREE.EffectComposer(renderer);
@@ -350,32 +539,30 @@
     });
 
     /* =========================================================
-       2. Procedural Drosophila Brain Neuropil Envelope Shell
+       3. Procedural Drosophila Brain Neuropil Envelope Shell
        ========================================================= */
     const brainGroup = new THREE.Group();
+    brainGroup.position.set(135, 10, -20); // Offset brain to the right so fly sits on the left
     scene.add(brainGroup);
 
-    // Translucent Fresnel Glass Material for Brain Shell
     const shellMat = new THREE.MeshPhysicalMaterial({
       color: 0x1e293b,
       emissive: 0x0f172a,
       roughness: 0.2,
       metalness: 0.1,
-      transmission: 0.7,
+      transmission: 0.72,
       transparent: true,
       opacity: 0.18,
       depthWrite: false,
       side: THREE.DoubleSide
     });
 
-    // Central Brain Capsule
     const centralGeo = new THREE.SphereGeometry(95, 32, 24);
     centralGeo.scale(1.2, 0.9, 0.75);
     const centralMesh = new THREE.Mesh(centralGeo, shellMat);
     centralMesh.position.set(0, 10, 0);
     brainGroup.add(centralMesh);
 
-    // Left Optic Lobe (Compound eye processing dome)
     const leftOpticGeo = new THREE.SphereGeometry(68, 32, 24);
     leftOpticGeo.scale(1.1, 0.85, 0.9);
     const leftOptic = new THREE.Mesh(leftOpticGeo, shellMat);
@@ -383,35 +570,30 @@
     leftOptic.rotation.z = 0.2;
     brainGroup.add(leftOptic);
 
-    // Right Optic Lobe
     const rightOptic = leftOptic.clone();
     rightOptic.position.set(115, 25, 10);
     rightOptic.rotation.z = -0.2;
     brainGroup.add(rightOptic);
 
-    // Ventral Nerve Cord Neck Trunk
     const neckGeo = new THREE.CylinderGeometry(35, 18, 120, 24, 1, true);
     const neckMesh = new THREE.Mesh(neckGeo, shellMat);
     neckMesh.position.set(0, -90, 0);
     brainGroup.add(neckMesh);
 
     /* =========================================================
-       3. High-Density Connectome Skeletons, Dendritic Arbors & Tracts
+       4. High-Density Connectome Skeletons, Dendritic Arbors & Tracts
        ========================================================= */
     let modelData = null;
     let nodeMeshes = [];
-    let edgeLines = [];
     let pulseParticles = [];
     let h_activity = new Float32Array(80);
     let W_connectome = null;
 
-    // Palette matching the Nature/Google visual
     const COLOR_INPUT = new THREE.Color(0x22d3ee);   // Electric Cyan (Optic lobes)
     const COLOR_INTER = new THREE.Color(0xfb923c);   // Warm Amber/Orange (Central complex)
     const COLOR_OUTPUT = new THREE.Color(0xf43f5e);  // Glowing Crimson/Magenta (Motor DNs)
     const COLOR_TRACT = new THREE.Color(0x3b82f6);   // Deep Blue for interconnecting tract fibers
 
-    // High-Density Recursive Arborization Tree (Fractal Dendritic Arbor)
     function createDenseArborTree(origin, role, densityMultiplier = 1.0) {
       const positions = [];
       const colors = [];
@@ -420,161 +602,419 @@
       function branch(pos, dir, length, depth, branchFactor) {
         if (depth <= 0) return;
         const end = pos.clone().add(dir.clone().multiplyScalar(length));
-        
-        positions.push(pos.x, pos.y, pos.z);
-        positions.push(end.x, end.y, end.z);
+        positions.push(pos.x, pos.y, pos.z, end.x, end.y, end.z);
 
-        // Subtle color variance along branch depth
         const depthTint = 0.55 + 0.45 * (depth / 4.0);
         colors.push(baseCol.r * depthTint, baseCol.g * depthTint, baseCol.b * depthTint);
         colors.push(baseCol.r * depthTint, baseCol.g * depthTint, baseCol.b * depthTint);
 
         for (let b = 0; b < branchFactor; b++) {
           const spread = 0.85;
-          const pert = new THREE.Vector3(
-            (Math.random() - 0.5) * spread,
-            (Math.random() - 0.5) * spread,
-            (Math.random() - 0.5) * spread
-          );
+          const pert = new THREE.Vector3((Math.random() - 0.5) * spread, (Math.random() - 0.5) * spread, (Math.random() - 0.5) * spread);
           const newDir = dir.clone().add(pert).normalize();
           branch(end, newDir, length * (0.62 + Math.random() * 0.15), depth - 1, branchFactor);
         }
       }
 
-      // Generate multiple main primary dendritic trunks per neuron
       const numTrunks = role === 'input' ? 4 : (role === 'output' ? 3 : 5);
       for (let t = 0; t < numTrunks; t++) {
         let bias = new THREE.Vector3();
-        if (role === 'input') {
-          // Bias outward towards optic periphery
-          bias.set(origin.x > 0 ? 1.0 : -1.0, 0.2, (Math.random() - 0.5) * 0.5);
-        } else if (role === 'output') {
-          // Bias downward along descending motor neck
-          bias.set((Math.random() - 0.5) * 0.4, -1.0, (Math.random() - 0.5) * 0.4);
-        } else {
-          // Cross-hemispheric and neuropil spreading
-          bias.set((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 1.5);
-        }
-        const dir = bias.normalize();
-        branch(origin, dir, 22.0 * densityMultiplier, 4, 2);
+        if (role === 'input') bias.set(origin.x > 0 ? 1.0 : -1.0, 0.2, (Math.random() - 0.5) * 0.5);
+        else if (role === 'output') bias.set(0, -1.0, (Math.random() - 0.5) * 0.4);
+        else bias.set((Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 0.8);
+
+        const initDir = bias.normalize();
+        branch(origin, initDir, 16 + Math.random() * 10, 4, 2);
       }
 
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
       geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      const mat = new THREE.LineBasicMaterial({
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.35,
-        blending: THREE.AdditiveBlending
-      });
+      const mat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending });
       return new THREE.LineSegments(geo, mat);
     }
 
-    // Dense Optic Lobe Columnar Lattice & Neuropil Tract Bundles
     function createDenseNeuropilTracts() {
       const positions = [];
       const colors = [];
+      const numBundles = 160;
 
-      // 1. Optic Lobe Columnar Hexagonal Strands (Left & Right Eyes)
-      const numLattice = 240;
-      for (let eye of [-1, 1]) {
-        for (let i = 0; i < numLattice; i++) {
-          const u = Math.random();
-          const v = Math.random();
-          const theta = u * 2.0 * Math.PI;
-          const phi = Math.acos(2.0 * v - 1.0);
-          
-          // Outer retinotopic surface
-          const rOuter = 72 + Math.random() * 8;
-          const sx = eye * 115 + rOuter * Math.sin(phi) * Math.cos(theta) * 1.05;
-          const sy = 25 + rOuter * Math.cos(phi) * 0.85;
-          const sz = 10 + rOuter * Math.sin(phi) * Math.sin(theta) * 0.88;
+      for (let i = 0; i < numBundles; i++) {
+        const u = (Math.random() - 0.5) * 2;
+        const v = (Math.random() - 0.5) * 2;
+        const p0 = new THREE.Vector3(-110 + Math.random() * 30, 20 + u * 25, v * 20);
+        const p1 = new THREE.Vector3((Math.random() - 0.5) * 40, 5 + Math.random() * 20, (Math.random() - 0.5) * 30);
+        const p2 = new THREE.Vector3(110 - Math.random() * 30, 20 + u * 25, v * 20);
+        const curve = new THREE.CatmullRomCurve3([p0, p1, p2]);
+        const pts = curve.getPoints(18);
 
-          // Project inward towards medulla/lobula neuropil core
-          const rInner = 20 + Math.random() * 15;
-          const ex = eye * 50 + (Math.random() - 0.5) * 25;
-          const ey = 15 + (Math.random() - 0.5) * 30;
-          const ez = (Math.random() - 0.5) * 30;
-
-          // 3-point curved tract strand
-          const midX = (sx + ex) * 0.5 + (Math.random() - 0.5) * 10;
-          const midY = (sy + ey) * 0.5 + (Math.random() - 0.5) * 10;
-          const midZ = (sz + ez) * 0.5 + (Math.random() - 0.5) * 10;
-
-          positions.push(sx, sy, sz, midX, midY, midZ);
-          positions.push(midX, midY, midZ, ex, ey, ez);
-
-          // Cyan / Blue gradient for visual tracts
-          const col = eye === -1 ? new THREE.Color(0x06b6d4) : new THREE.Color(0x38bdf8);
-          colors.push(col.r * 0.8, col.g * 0.8, col.b * 0.8);
-          colors.push(col.r * 0.5, col.g * 0.5, col.b * 0.5);
-          colors.push(col.r * 0.5, col.g * 0.5, col.b * 0.5);
-          colors.push(0.1, 0.2, 0.5);
+        for (let j = 0; j < pts.length - 1; j++) {
+          positions.push(pts[j].x, pts[j].y, pts[j].z, pts[j+1].x, pts[j+1].y, pts[j+1].z);
+          colors.push(COLOR_TRACT.r * 0.4, COLOR_TRACT.g * 0.4, COLOR_TRACT.b * 0.4);
+          colors.push(COLOR_TRACT.r * 0.4, COLOR_TRACT.g * 0.4, COLOR_TRACT.b * 0.4);
         }
-      }
-
-      // 2. Dense Central Complex & Mushroom Body Fiber Bundles (Amber / Gold)
-      const numCentralTracts = 320;
-      for (let i = 0; i < numCentralTracts; i++) {
-        const theta = Math.random() * Math.PI * 2;
-        const rad = 25 + Math.random() * 45;
-        const sx = Math.cos(theta) * rad * 1.3;
-        const sy = 10 + Math.sin(theta) * rad * 0.9;
-        const sz = (Math.random() - 0.5) * 45;
-
-        // Connect across midline (commissure fibers)
-        const ex = -sx * (0.6 + Math.random() * 0.5);
-        const ey = sy + (Math.random() - 0.5) * 20;
-        const ez = sz + (Math.random() - 0.5) * 20;
-
-        positions.push(sx, sy, sz, ex, ey, ez);
-        colors.push(0.95, 0.55, 0.2);
-        colors.push(0.85, 0.35, 0.1);
-      }
-
-      // 3. Braided Descending Motor Cable (Ventral Nerve Cord Trunk)
-      const numMotorStrands = 180;
-      for (let i = 0; i < numMotorStrands; i++) {
-        const sx = (Math.random() - 0.5) * 35;
-        const sy = -20 + (Math.random() - 0.5) * 15;
-        const sz = (Math.random() - 0.5) * 30;
-
-        const ex = (Math.random() - 0.5) * 18;
-        const ey = -160 + (Math.random() - 0.5) * 20;
-        const ez = (Math.random() - 0.5) * 18;
-
-        const midX = (sx + ex) * 0.5 + Math.sin(i * 0.3) * 6;
-        const midY = (sy + ey) * 0.5;
-        const midZ = (sz + ez) * 0.5 + Math.cos(i * 0.3) * 6;
-
-        positions.push(sx, sy, sz, midX, midY, midZ);
-        positions.push(midX, midY, midZ, ex, ey, ez);
-
-        colors.push(0.95, 0.25, 0.5);
-        colors.push(0.7, 0.15, 0.35);
-        colors.push(0.7, 0.15, 0.35);
-        colors.push(0.4, 0.1, 0.2);
       }
 
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
       geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      const mat = new THREE.LineBasicMaterial({
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.24,
-        blending: THREE.AdditiveBlending
-      });
+      const mat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending });
       return new THREE.LineSegments(geo, mat);
     }
 
+    /* =========================================================
+       5. Animated 3D Drosophila Melanogaster Avatar
+       ========================================================= */
+    const flyAvatarGroup = new THREE.Group();
+    flyAvatarGroup.position.set(-30, 12, 85); flyAvatarGroup.rotation.y = -1.25;
+    flyAvatarGroup.scale.set(1.85, 1.85, 1.85);
+    scene.add(flyAvatarGroup);
+
+    let flyRig = {
+      root: flyAvatarGroup,
+      thorax: null,
+      head: null,
+      leftEyeGlow: null,
+      rightEyeGlow: null,
+      leftAntenna: null,
+      rightAntenna: null,
+      abdomen: null,
+      leftWingPivot: null,
+      rightWingPivot: null,
+      legs: [],
+      state: 'IDLE',
+      wingbeatHz: 0,
+      wingPhase: 0,
+      baseY: 20,
+      sparkGroup: null
+    };
+
+    function createProceduralWingTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 512, 256);
+
+      const grad = ctx.createRadialGradient(256, 128, 20, 256, 128, 220);
+      grad.addColorStop(0, 'rgba(230, 245, 255, 0.45)');
+      grad.addColorStop(0.7, 'rgba(200, 230, 255, 0.25)');
+      grad.addColorStop(1, 'rgba(180, 220, 255, 0.05)');
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(256, 128, 240, 95, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.ellipse(256, 128, 240, 95, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.lineWidth = 2.5;
+
+      ctx.beginPath();
+      ctx.moveTo(25, 128);
+      ctx.bezierCurveTo(120, 70, 320, 60, 480, 110);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(25, 128);
+      ctx.bezierCurveTo(150, 105, 330, 110, 490, 128);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(25, 128);
+      ctx.bezierCurveTo(140, 155, 300, 185, 450, 160);
+      ctx.stroke();
+
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(260, 90); ctx.lineTo(270, 118);
+      ctx.moveTo(370, 115); ctx.lineTo(365, 150);
+      ctx.stroke();
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    function buildProceduralDrosophila() {
+      const flyContainer = new THREE.Group();
+
+      // 1. Thorax (Mesothorax)
+      const thoraxGeo = new THREE.SphereGeometry(22, 24, 20);
+      thoraxGeo.scale(1.2, 0.95, 1.0);
+      const thoraxMat = new THREE.MeshPhysicalMaterial({
+        color: 0x92400e, emissive: 0x451a03, emissiveIntensity: 0.2,
+        roughness: 0.35,
+        metalness: 0.25,
+        clearcoat: 0.4
+      });
+      const thorax = new THREE.Mesh(thoraxGeo, thoraxMat);
+      thorax.position.set(0, 0, 0);
+      flyContainer.add(thorax);
+      flyRig.thorax = thorax;
+
+      // 2. Head Capsule
+      const headGroup = new THREE.Group();
+      headGroup.position.set(24, 4, 0);
+
+      const headGeo = new THREE.SphereGeometry(14, 24, 20);
+      headGeo.scale(0.85, 1.0, 1.15);
+      const headMat = new THREE.MeshPhysicalMaterial({
+        color: 0xb45309,
+        roughness: 0.3,
+        metalness: 0.2,
+        clearcoat: 0.5
+      });
+      const headMesh = new THREE.Mesh(headGeo, headMat);
+      headGroup.add(headMesh);
+
+      // 3. Huge Ruby Compound Eyes
+      const eyeGeo = new THREE.SphereGeometry(9.5, 20, 16);
+      eyeGeo.scale(0.9, 1.25, 0.95);
+      const eyeMat = new THREE.MeshPhysicalMaterial({
+        color: 0xdc2626,
+        roughness: 0.25,
+        metalness: 0.1,
+        clearcoat: 0.8
+      });
+
+      const eyeLeft = new THREE.Mesh(eyeGeo, eyeMat);
+      eyeLeft.position.set(4, 3, 10.5);
+      eyeLeft.rotation.y = 0.25;
+      headGroup.add(eyeLeft);
+
+      const eyeRight = new THREE.Mesh(eyeGeo, eyeMat);
+      eyeRight.position.set(4, 3, -10.5);
+      eyeRight.rotation.y = -0.25;
+      headGroup.add(eyeRight);
+
+      // Emissive mesh for neural flaring
+      const glowGeo = new THREE.SphereGeometry(7.0, 16, 12);
+      const glowMat = new THREE.MeshBasicMaterial({
+        color: 0x00f0ff,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending
+      });
+
+      const eyeGlowLeft = new THREE.Mesh(glowGeo, glowMat);
+      eyeGlowLeft.position.copy(eyeLeft.position);
+      headGroup.add(eyeGlowLeft);
+      flyRig.leftEyeGlow = eyeGlowLeft;
+
+      const eyeGlowRight = new THREE.Mesh(glowGeo, glowMat.clone());
+      eyeGlowRight.position.copy(eyeRight.position);
+      headGroup.add(eyeGlowRight);
+      flyRig.rightEyeGlow = eyeGlowRight;
+
+      // 4. Twitching Antennae (Aristae)
+      const antMat = new THREE.MeshStandardMaterial({ color: 0xfde047, emissive: 0xeab308, emissiveIntensity: 0.6 });
+      function createAntenna(side) {
+        const antGroup = new THREE.Group();
+        const baseGeo = new THREE.CylinderGeometry(0.8, 1.2, 10, 8);
+        const base = new THREE.Mesh(baseGeo, antMat);
+        base.position.set(16, 10, side * 5);
+        base.rotation.set(side * 0.4, 0, -0.6);
+        antGroup.add(base);
+
+        const tipGeo = new THREE.CylinderGeometry(0.3, 0.7, 14, 8);
+        const tip = new THREE.Mesh(tipGeo, antMat);
+        tip.position.set(22, 18, side * 8);
+        tip.rotation.set(side * 0.6, 0, -0.9);
+        antGroup.add(tip);
+        return antGroup;
+      }
+      const leftAnt = createAntenna(1);
+      const rightAnt = createAntenna(-1);
+      headGroup.add(leftAnt);
+      headGroup.add(rightAnt);
+      flyRig.leftAntenna = leftAnt;
+      flyRig.rightAntenna = rightAnt;
+
+      flyContainer.add(headGroup);
+      flyRig.head = headGroup;
+
+      // 5. Segmented Striped Abdomen
+      const abdomenGroup = new THREE.Group();
+      abdomenGroup.position.set(-20, -2, 0);
+
+      const numSegments = 6;
+      for (let s = 0; s < numSegments; s++) {
+        const segRadius = 18 * (1.0 - (s / numSegments) * 0.45);
+        const segGeo = new THREE.CylinderGeometry(segRadius * 0.92, segRadius, 7.5, 20);
+        segGeo.rotateZ(Math.PI / 2);
+
+        const isDarkBand = s >= 3 || (s % 2 === 1);
+        const segMat = new THREE.MeshPhysicalMaterial({
+          color: isDarkBand ? 0x27180e : 0xd97706,
+          roughness: 0.35,
+          metalness: 0.15,
+          clearcoat: 0.3
+        });
+        const segMesh = new THREE.Mesh(segGeo, segMat);
+        segMesh.position.set(-s * 7.0, -Math.sin(s * 0.3) * 2.5, 0);
+        abdomenGroup.add(segMesh);
+      }
+      flyContainer.add(abdomenGroup);
+      flyRig.abdomen = abdomenGroup;
+
+      // 6. Iridescent Veined Wings
+      const wingTex = createProceduralWingTexture();
+      const wingMat = new THREE.MeshPhysicalMaterial({
+        map: wingTex,
+        transparent: true,
+        opacity: 0.72,
+        roughness: 0.12,
+        metalness: 0.1,
+        transmission: 0.82,
+        ior: 1.54,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        emissive: 0x38bdf8,
+        emissiveIntensity: 0.25
+      });
+
+      const wingGeo = new THREE.PlaneGeometry(62, 28);
+      wingGeo.translate(28, 0, 0);
+
+      const leftWingPivot = new THREE.Group();
+      leftWingPivot.position.set(-2, 16, 12);
+      leftWingPivot.rotation.set(-0.25, 0.4, 0.1);
+      const leftWingMesh = new THREE.Mesh(wingGeo, wingMat);
+      leftWingMesh.rotation.x = -Math.PI / 2;
+      leftWingPivot.add(leftWingMesh);
+      flyContainer.add(leftWingPivot);
+      flyRig.leftWingPivot = leftWingPivot;
+
+      const rightWingPivot = new THREE.Group();
+      rightWingPivot.position.set(-2, 16, -12);
+      rightWingPivot.rotation.set(0.25, -0.4, -0.1);
+      const rightWingMesh = new THREE.Mesh(wingGeo, wingMat);
+      rightWingMesh.rotation.x = -Math.PI / 2;
+      rightWingPivot.add(rightWingMesh);
+      flyContainer.add(rightWingPivot);
+      flyRig.rightWingPivot = rightWingPivot;
+
+      // 7. Articulated Legs
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.4 });
+      function createLeg(xOffset, zSign, angleBias) {
+        const legGroup = new THREE.Group();
+        legGroup.position.set(xOffset, -10, zSign * 14);
+
+        const femurGeo = new THREE.CylinderGeometry(1.8, 1.4, 18, 8);
+        const femur = new THREE.Mesh(femurGeo, legMat);
+        femur.position.set(0, -7, zSign * 6);
+        femur.rotation.x = zSign * 0.6 * angleBias;
+        legGroup.add(femur);
+
+        const tibiaGeo = new THREE.CylinderGeometry(1.3, 0.9, 20, 8);
+        const tibia = new THREE.Mesh(tibiaGeo, legMat);
+        tibia.position.set(0, -22, zSign * 12);
+        tibia.rotation.x = -zSign * 0.4 * angleBias;
+        legGroup.add(tibia);
+
+        return legGroup;
+      }
+
+      flyContainer.add(createLeg(10, 1, 0.8), createLeg(10, -1, 0.8));
+      flyContainer.add(createLeg(-2, 1, 1.1), createLeg(-2, -1, 1.1));
+      flyContainer.add(createLeg(-14, 1, 1.4), createLeg(-14, -1, 1.4));
+
+      // 8. Holographic Glowing Cyber-Pedestal
+      const pedestalGroup = new THREE.Group();
+      pedestalGroup.position.set(0, -45, 0);
+
+      const ringGeo1 = new THREE.RingGeometry(38, 41, 32);
+      ringGeo1.rotateX(Math.PI / 2);
+      const ringMat1 = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+      pedestalGroup.add(new THREE.Mesh(ringGeo1, ringMat1));
+
+      const ringGeo2 = new THREE.RingGeometry(22, 24, 24);
+      ringGeo2.rotateX(Math.PI / 2);
+      const ringMat2 = new THREE.MeshBasicMaterial({ color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+      pedestalGroup.add(new THREE.Mesh(ringGeo2, ringMat2));
+
+      flyContainer.add(pedestalGroup);
+      flyRig.pedestal = pedestalGroup;
+
+      // 9. Shock / Spark Particle Group
+      const sparkGroup = new THREE.Group();
+      const sparkGeo = new THREE.SphereGeometry(1.5, 8, 8);
+      const sparkMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+      for (let sp = 0; sp < 16; sp++) {
+        const sm = new THREE.Mesh(sparkGeo, sparkMat);
+        sm.visible = false;
+        sparkGroup.add(sm);
+      }
+      flyContainer.add(sparkGroup);
+      flyRig.sparkGroup = sparkGroup;
+
+      flyAvatarGroup.add(flyContainer);
+      return flyAvatarGroup;
+    }
+
+    buildProceduralDrosophila();
+
+    // Check if an external GLTF model is provided
+    const gltfLoader = new THREE.GLTFLoader();
+    gltfLoader.load('fly.glb', (gltf) => {
+      console.log('Custom fly.glb detected! Attaching external 3D model...');
+      flyAvatarGroup.clear();
+      const customFly = gltf.scene;
+      customFly.scale.set(15, 15, 15);
+      flyAvatarGroup.add(customFly);
+    }, undefined, () => {});
+
+    /* =========================================================
+       6. Holographic Neural Targeting Laser & Synaptic Arcs
+       ========================================================= */
+    const laserMat = new THREE.LineBasicMaterial({
+      color: 0x38bdf8,
+      linewidth: 3,
+      transparent: true,
+      opacity: 0.0,
+      blending: THREE.AdditiveBlending
+    });
+    const laserGeo = new THREE.BufferGeometry();
+    const laserPositions = new Float32Array([0,0,0, 0,0,0]);
+    laserGeo.setAttribute('position', new THREE.BufferAttribute(laserPositions, 3));
+    const targetingLaser = new THREE.Line(laserGeo, laserMat);
+    scene.add(targetingLaser);
+
+    let laserLife = 0.0;
+
+    function fireNeuralLaser(tileIdx) {
+      if (!flyRig.head || !targetingLaser) return;
+      const tr = Math.floor(tileIdx / COLS) - 2.5;
+      const tc = (tileIdx % COLS) - 2.5;
+      const targetPos = new THREE.Vector3(-310 + tc * 20, 100 - tr * 20, 120);
+
+      const headWorld = new THREE.Vector3();
+      flyRig.head.getWorldPosition(headWorld);
+
+      const posAttr = targetingLaser.geometry.getAttribute('position');
+      posAttr.setXYZ(0, headWorld.x, headWorld.y, headWorld.z);
+      posAttr.setXYZ(1, targetPos.x, targetPos.y, targetPos.z);
+      posAttr.needsUpdate = true;
+
+      targetingLaser.geometry.computeBoundingSphere();
+      laserMat.opacity = 0.95;
+      laserLife = 1.0;
+    }
+
+    /* =========================================================
+       7. Connectome Loader & Dynamics
+       ========================================================= */
     async function loadConnectome() {
       try {
-        const resp = await fetch('fly_model_web.json');
-        modelData = await resp.json();
-      } catch (e) {
-        console.warn('Could not fetch fly_model_web.json, using synthetic connectome fallback:', e);
+        const res = await fetch('fly_model_web.json');
+        if (!res.ok) throw new Error("Could not fetch fly_model_web.json");
+        modelData = await res.json();
+      } catch (err) {
+        console.warn("Using procedural fallback connectome data:", err);
         modelData = generateFallbackData();
       }
       buildConnectome3D(modelData);
@@ -584,7 +1024,6 @@
       const nodes = data.nodes;
       const edges = data.edges;
 
-      // Find bounding box to normalize into 3D scene [-100, 100]
       let minX = Infinity, maxX = -Infinity;
       let minY = Infinity, maxY = -Infinity;
       let minZ = Infinity, maxZ = -Infinity;
@@ -596,14 +1035,14 @@
       });
 
       const sphereGeo = new THREE.SphereGeometry(3.5, 16, 16);
+      nodeMeshes = [];
+
       nodes.forEach((n, i) => {
-        // Normalize coordinates to fit inside Drosophila neuropil shell
         const nx = ((n.position[0] - minX) / (maxX - minX) - 0.5) * 220;
         const ny = -((n.position[1] - minY) / (maxY - minY) - 0.5) * 160 + 10;
         const nz = ((n.position[2] - minZ) / (maxZ - minZ) - 0.5) * 120;
         const pos = new THREE.Vector3(nx, ny, nz);
 
-        // Node Glow Material
         let baseColor = n.role === 'input' ? COLOR_INPUT : (n.role === 'output' ? COLOR_OUTPUT : COLOR_INTER);
         const mat = new THREE.MeshStandardMaterial({
           color: baseColor,
@@ -614,24 +1053,22 @@
         const mesh = new THREE.Mesh(sphereGeo, mat);
         mesh.position.copy(pos);
         brainGroup.add(mesh);
-        nodeMeshes.push({ mesh, role: n.role, baseColor, pos });
 
-        // Add Dense 3D Dendritic Arbor Tree
         const arbor = createDenseArborTree(pos, n.role, 1.2);
         brainGroup.add(arbor);
-        nodeMeshes[i].arbor = arbor;
+
+        nodeMeshes.push({ mesh, role: n.role, baseColor, pos, arbor });
       });
 
-      // Add high-density optic & neuropil fiber tracts
       const tracts = createDenseNeuropilTracts();
       brainGroup.add(tracts);
 
-      // Build Dense Synaptic Edges (All 1,296 biological connections)
+      // Build Synaptic Edges
       const edgePos = [];
       const edgeColors = [];
-      edges.forEach((edge, idx) => {
-        const s_id = Array.isArray(edge) ? edge[0] : edge.src;
-        const d_id = Array.isArray(edge) ? edge[1] : edge.dst;
+      edges.forEach((edge) => {
+        const s_id = Array.isArray(edge) ? edge[0] : (edge.source !== undefined ? edge.source : edge.src);
+        const d_id = Array.isArray(edge) ? edge[1] : (edge.target !== undefined ? edge.target : edge.dst);
         const s_idx = nodes.findIndex(n => n.id === s_id);
         const d_idx = nodes.findIndex(n => n.id === d_id);
 
@@ -654,15 +1091,14 @@
         opacity: 0.16,
         blending: THREE.AdditiveBlending
       });
-      const edgeMesh = new THREE.LineSegments(edgeGeo, edgeMat);
-      brainGroup.add(edgeMesh);
+      brainGroup.add(new THREE.LineSegments(edgeGeo, edgeMat));
 
-      // Build Weight Matrix for client simulation
+      // Build Weight Matrix
       W_connectome = new Float32Array(80 * 80);
       edges.forEach(edge => {
-        const s_id = Array.isArray(edge) ? edge[0] : edge.src;
-        const d_id = Array.isArray(edge) ? edge[1] : edge.dst;
-        const w = Array.isArray(edge) ? edge[2] : (edge.contacts || 1);
+        const s_id = Array.isArray(edge) ? edge[0] : (edge.source !== undefined ? edge.source : edge.src);
+        const d_id = Array.isArray(edge) ? edge[1] : (edge.target !== undefined ? edge.target : edge.dst);
+        const w = Array.isArray(edge) ? edge[2] : (edge.weight || edge.contacts || 1);
         const s = nodes.findIndex(n => n.id === s_id);
         const d = nodes.findIndex(n => n.id === d_id);
         if (s !== -1 && d !== -1) {
@@ -672,58 +1108,62 @@
       });
     }
 
-    /* =========================================================
-       4. Real-Time Action Potential Traveling Pulses
-       ========================================================= */
-    function triggerActionPotentialPulse(sourceIdx, destIdx) {
-      if (!nodeMeshes[sourceIdx] || !nodeMeshes[destIdx]) return;
-      const start = nodeMeshes[sourceIdx].pos.clone();
-      const end = nodeMeshes[destIdx].pos.clone();
-      const pulseGeo = new THREE.SphereGeometry(1.8, 8, 8);
-      const pulseMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.9,
-        blending: THREE.AdditiveBlending
+    function triggerActionPotentialPulse(srcIdx, dstIdx) {
+      if (!nodeMeshes[srcIdx] || !nodeMeshes[dstIdx]) return;
+      pulseParticles.push({
+        start: nodeMeshes[srcIdx].pos.clone(),
+        end: nodeMeshes[dstIdx].pos.clone(),
+        progress: 0.0,
+        speed: 0.035 + Math.random() * 0.04
       });
-      const pulse = new THREE.Mesh(pulseGeo, pulseMat);
-      brainGroup.add(pulse);
-      pulseParticles.push({ mesh: pulse, start, end, progress: 0.0, speed: 0.04 + Math.random() * 0.02 });
+    }
+
+    const pulseGeo = new THREE.SphereGeometry(2.0, 8, 8);
+    const pulseMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, blending: THREE.AdditiveBlending });
+    const pulseMeshPool = [];
+    for (let i = 0; i < 60; i++) {
+      const pm = new THREE.Mesh(pulseGeo, pulseMat);
+      pm.visible = false;
+      brainGroup.add(pm);
+      pulseMeshPool.push(pm);
     }
 
     function updatePulses() {
-      for (let i = pulseParticles.length - 1; i >= 0; i--) {
-        const p = pulseParticles[i];
-        p.progress += p.speed;
-        p.mesh.position.lerpVectors(p.start, p.end, p.progress);
-        if (p.progress >= 1.0) {
-          brainGroup.remove(p.mesh);
-          p.mesh.geometry.dispose();
-          p.mesh.material.dispose();
-          pulseParticles.splice(i, 1);
+      for (let i = 0; i < pulseMeshPool.length; i++) pulseMeshPool[i].visible = false;
+      for (let p = pulseParticles.length - 1; p >= 0; p--) {
+        const pulse = pulseParticles[p];
+        pulse.progress += pulse.speed;
+        if (pulse.progress >= 1.0) {
+          pulseParticles.splice(p, 1);
+        } else if (p < pulseMeshPool.length) {
+          const pm = pulseMeshPool[p];
+          pm.visible = true;
+          pm.position.lerpVectors(pulse.start, pulse.end, pulse.progress);
         }
       }
     }
 
     /* =========================================================
-       5. Minesweeper Game Engine & Neural Inference
+       8. Minesweeper Game Engine & Biological Reactive Feedback
        ========================================================= */
     const ROWS = 6, COLS = 6, MINES = 4;
-    let board = Array(ROWS * COLS).fill(0); // 1 = mine
-    let revealed = Array(ROWS * COLS).fill(false);
-    let counts = Array(ROWS * COLS).fill(0);
+    let board = new Array(ROWS * COLS).fill(0);
+    let revealed = new Array(ROWS * COLS).fill(false);
+    let counts = new Array(ROWS * COLS).fill(0);
     let gameOver = false, won = false, firstClick = true;
-    let autoPlay = true;
     let safeReveals = 0;
+    let autoPlay = true;
+    let stepTimer = null;
     let lastActionIdx = -1;
 
     const gridEl = document.getElementById('grid');
     for (let i = 0; i < ROWS * COLS; i++) {
       const tile = document.createElement('div');
       tile.className = 'tile';
-      tile.dataset.idx = i;
+      tile.dataset.index = i;
       tile.addEventListener('click', () => {
-        if (!gameOver && !revealed[i]) makeMove(i);
+        initAudio();
+        makeMove(i);
       });
       gridEl.appendChild(tile);
     }
@@ -737,14 +1177,19 @@
       firstClick = true;
       safeReveals = 0;
       lastActionIdx = -1;
-      h_activity.fill(0);
 
-      document.getElementById('mines-count').innerText = '0' + MINES;
+      document.getElementById('mines-count').innerText = '04';
       document.getElementById('safe-count').innerText = '00/32';
       document.getElementById('game-state').innerText = '[ PLAYING ]';
       document.getElementById('game-state').style.color = '#fbbf24';
-      document.getElementById('txt-dopamine').innerText = 'PAM Baseline';
-      document.getElementById('txt-dopamine').style.color = '#38bdf8';
+      document.getElementById('txt-dopamine-val').innerText = '+100 Baseline';
+      document.getElementById('txt-dopamine-val').style.color = '#38bdf8';
+      document.getElementById('meter-dopamine').style.width = '70%';
+
+      flyRig.state = 'IDLE';
+      document.getElementById('fly-status-text').innerText = 'HOVERING';
+      document.getElementById('fly-status-text').style.color = '#38bdf8';
+      document.getElementById('thought-stream').innerText = '[Sensory]: Board reset. Scanning perimeter for exploration...';
 
       renderBoard();
     }
@@ -755,19 +1200,14 @@
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
           const nr = fr + dr, nc = fc + dc;
-          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
-            forbidden.add(nr * COLS + nc);
-          }
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) forbidden.add(nr * COLS + nc);
         }
       }
       const candidates = [];
-      for (let i = 0; i < ROWS * COLS; i++) {
-        if (!forbidden.has(i)) candidates.push(i);
-      }
+      for (let i = 0; i < ROWS * COLS; i++) if (!forbidden.has(i)) candidates.push(i);
       candidates.sort(() => Math.random() - 0.5);
       for (let m = 0; m < MINES; m++) board[candidates[m]] = 1;
 
-      // Count neighbors
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           const idx = r * COLS + c;
@@ -777,9 +1217,7 @@
             for (let dc = -1; dc <= 1; dc++) {
               if (dr === 0 && dc === 0) continue;
               const nr = r + dr, nc = c + dc;
-              if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
-                cnt += board[nr * COLS + nc];
-              }
+              if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) cnt += board[nr * COLS + nc];
             }
           }
           counts[idx] = cnt;
@@ -818,28 +1256,52 @@
         firstClick = false;
       }
 
+      fireNeuralLaser(idx);
+      playWingBuzz(0.25);
+
       if (board[idx] === 1) {
-        // Boom!
         gameOver = true;
         revealed[idx] = true;
         document.getElementById('game-state').innerText = '[ BOOM ]';
         document.getElementById('game-state').style.color = '#f43f5e';
-        document.getElementById('txt-dopamine').innerText = 'PPL101 AVERSIVE SHOCK';
-        document.getElementById('txt-dopamine').style.color = '#f43f5e';
+        document.getElementById('txt-dopamine-val').innerText = 'PPL1 AVERSIVE SHOCK (-500)';
+        document.getElementById('txt-dopamine-val').style.color = '#f43f5e';
+        document.getElementById('meter-dopamine').style.width = '10%';
+
+        flyRig.state = 'BOOM_REACTION';
+        document.getElementById('fly-status-text').innerText = 'AVERSIVE RECOIL!';
+        document.getElementById('fly-status-text').style.color = '#f43f5e';
+        document.getElementById('thought-stream').innerText = '[PPL1 Dopaminergic Shock]: Detonated mine! Synaptic weights penalizing action ' + idx + '!';
+        playBoom();
       } else {
         if (counts[idx] === 0) cascadeReveal(idx);
         else {
           revealed[idx] = true;
           safeReveals++;
         }
-        document.getElementById('txt-dopamine').innerText = 'PAM Dopamine Reward +';
-        document.getElementById('txt-dopamine').style.color = '#4ade80';
+        playTileClick();
+        playNeuralChirp();
+
+        document.getElementById('txt-dopamine-val').innerText = '+180 PAM Reward (Safe)';
+        document.getElementById('txt-dopamine-val').style.color = '#4ade80';
+        document.getElementById('meter-dopamine').style.width = Math.min(100, 70 + Math.round((safeReveals / 32) * 30)) + '%';
+
+        flyRig.state = 'SAFE_REACTION';
+        document.getElementById('fly-status-text').innerText = 'SAFE REVEAL (+PAM)';
+        document.getElementById('fly-status-text').style.color = '#4ade80';
+        document.getElementById('thought-stream').innerText = `[LC4 Visual Motion]: Safe tile ${idx} verified! Firing motor DNp01 safe readout.`;
 
         if (safeReveals >= (ROWS * COLS - MINES)) {
           gameOver = true;
           won = true;
           document.getElementById('game-state').innerText = '[ WINNER! ]';
           document.getElementById('game-state').style.color = '#4ade80';
+
+          flyRig.state = 'VICTORY_DANCE';
+          document.getElementById('fly-status-text').innerText = 'VICTORY CELEBRATION!';
+          document.getElementById('fly-status-text').style.color = '#facc15';
+          document.getElementById('thought-stream').innerText = '[MaleCNS Connectome]: 100% board clearance achieved! Victory flight loop initiated!';
+          playVictoryChime();
         }
       }
 
@@ -867,19 +1329,14 @@
       }
     }
 
-    // Neural Network Simulation Step
     function runNeuralSimulation() {
       if (!modelData || !W_connectome) return;
 
-      // 1. Convert board observation to normalized vector [-1, 1]
       const obs = new Float32Array(36);
-      for (let i = 0; i < 36; i++) {
-        obs[i] = revealed[i] ? (counts[i] / 8.0) : -1.0;
-      }
+      for (let i = 0; i < 36; i++) obs[i] = revealed[i] ? (counts[i] / 8.0) : -1.0;
 
-      // 2. Sensory projection W_in (32 visual input cells)
       const u = new Float32Array(80);
-      const W_in = modelData.W_in; // [32][36]
+      const W_in = modelData.W_in;
       const inputIndices = [];
       modelData.nodes.forEach((n, idx) => { if (n.role === 'input') inputIndices.push(idx); });
 
@@ -889,7 +1346,6 @@
         u[inputIndices[inp]] = sum;
       }
 
-      // 3. Leaky rate dynamics: h = 0.3*h + 0.7*tanh(u + 1.4*W^T * h)
       const alpha = 0.7, gamma = 1.4;
       for (let step = 0; step < 2; step++) {
         const new_h = new Float32Array(80);
@@ -901,45 +1357,48 @@
         h_activity.set(new_h);
       }
 
-      // Spawn traveling action potential pulses
-      for (let k = 0; k < 6; k++) {
+      for (let k = 0; k < 7; k++) {
         const s = Math.floor(Math.random() * 80);
         const d = Math.floor(Math.random() * 80);
-        if (Math.abs(h_activity[s]) > 0.2) triggerActionPotentialPulse(s, d);
+        if (Math.abs(h_activity[s]) > 0.18) triggerActionPotentialPulse(s, d);
       }
 
-      // Update HUD telemetry meters
-      let meanAct = 0, maxAct = 0;
-      for (let i = 0; i < 80; i++) {
-        const a = Math.abs(h_activity[i]);
-        meanAct += a;
-        if (a > maxAct) maxAct = a;
-      }
+      let meanAct = 0;
+      for (let i = 0; i < 80; i++) meanAct += Math.abs(h_activity[i]);
       meanAct /= 80;
       document.getElementById('txt-firing-rate').innerText = meanAct.toFixed(3);
       document.getElementById('meter-firing').style.width = Math.min(100, Math.round(meanAct * 180)) + '%';
+
+      if (flyRig.leftEyeGlow) {
+        const glowInt = 0.4 + meanAct * 2.2;
+        flyRig.leftEyeGlow.material.opacity = glowInt;
+        flyRig.rightEyeGlow.material.opacity = glowInt;
+      }
     }
 
-    // AI Decision Step
     function stepFlyAI() {
       if (gameOver) return;
+      initAudio();
+
       if (!modelData) {
-        // Fallback: pick random unrevealed
         const unrev = [];
         for (let i = 0; i < 36; i++) if (!revealed[i]) unrev.push(i);
         if (unrev.length > 0) makeMove(unrev[Math.floor(Math.random() * unrev.length)]);
         return;
       }
 
-      // Readout from Descending Neurons
+      flyRig.state = 'SCANNING';
+      document.getElementById('fly-status-text').innerText = 'SCANNING BOARD';
+      document.getElementById('fly-status-text').style.color = '#38bdf8';
+
       const outputIndices = [];
       modelData.nodes.forEach((n, idx) => { if (n.role === 'output') outputIndices.push(idx); });
 
       const dnAct = new Float32Array(outputIndices.length);
       for (let i = 0; i < outputIndices.length; i++) dnAct[i] = h_activity[outputIndices[i]];
 
-      const W_out = modelData.W_out; // [36][16]
-      const b_out = modelData.b_out; // [36]
+      const W_out = modelData.W_out;
+      const b_out = modelData.b_out;
       const logits = new Float32Array(36);
 
       let bestAction = -1;
@@ -951,7 +1410,7 @@
           continue;
         }
         let sum = b_out[a];
-        for (let dn = 0; dn < outputIndices.length; dn++) sum += W_out[a][dn] * dnAct[dn];
+        for (let o = 0; o < outputIndices.length; o++) sum += W_out[a][o] * dnAct[o];
         logits[a] = sum;
         if (sum > maxLogit) {
           maxLogit = sum;
@@ -959,106 +1418,231 @@
         }
       }
 
-      if (bestAction !== -1) makeMove(bestAction);
+      if (bestAction !== -1) {
+        makeMove(bestAction);
+      }
+    }
+
+    function scheduleNextStep() {
+      if (stepTimer) clearTimeout(stepTimer);
+      if (autoPlay && !gameOver) {
+        stepTimer = setTimeout(() => {
+          stepFlyAI();
+          scheduleNextStep();
+        }, 1100);
+      }
+    }
+
+    document.getElementById('btn-play').addEventListener('click', () => {
+      initAudio();
+      autoPlay = !autoPlay;
+      document.getElementById('btn-play').innerText = autoPlay ? 'Pause AI' : 'Resume AI';
+      document.getElementById('btn-play').className = autoPlay ? 'primary' : '';
+      if (autoPlay) scheduleNextStep();
+    });
+
+    document.getElementById('btn-step').addEventListener('click', () => {
+      initAudio();
+      autoPlay = false;
+      document.getElementById('btn-play').innerText = 'Resume AI';
+      document.getElementById('btn-play').className = '';
+      stepFlyAI();
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      initAudio();
+      resetGame();
+      if (autoPlay) scheduleNextStep();
+    });
+
+    /* =========================================================
+       9. Camera Director System & Smooth Transitions
+       ========================================================= */
+    let cameraMode = 'ARENA';
+    const camButtons = {
+      'cam-arena': 'ARENA',
+      'cam-fly': 'FLY',
+      'cam-brain': 'BRAIN',
+      'cam-director': 'DIRECTOR'
+    };
+
+    Object.keys(camButtons).forEach(id => {
+      document.getElementById(id).addEventListener('click', (e) => {
+        Object.keys(camButtons).forEach(k => document.getElementById(k).classList.remove('active-btn'));
+        e.target.classList.add('active-btn');
+        cameraMode = camButtons[id];
+        controls.autoRotate = false;
+
+        if (cameraMode === 'ARENA') {
+          gsapMoveCamera(new THREE.Vector3(30, -10, 480), new THREE.Vector3(50, 10, 0));
+        } else if (cameraMode === 'FLY') {
+          gsapMoveCamera(new THREE.Vector3(-10, 25, 170), new THREE.Vector3(-35, 10, 70));
+        } else if (cameraMode === 'BRAIN') {
+          gsapMoveCamera(new THREE.Vector3(135, 30, 250), new THREE.Vector3(135, 10, -20));
+        }
+      });
+    });
+
+    let targetCamPos = camera.position.clone();
+    let targetLookAt = controls.target.clone();
+
+    function gsapMoveCamera(newPos, newLook) {
+      targetCamPos.copy(newPos);
+      targetLookAt.copy(newLook);
     }
 
     /* =========================================================
-       6. UI Buttons & Camera Presets
+       10. Animation Loop: Fly Rigging, Pulses & Bloom Rendering
        ========================================================= */
-    const btnPlay = document.getElementById('btn-play');
-    btnPlay.addEventListener('click', () => {
-      autoPlay = !autoPlay;
-      btnPlay.innerText = autoPlay ? 'Pause AI' : 'Resume AI';
-      btnPlay.className = autoPlay ? 'primary' : '';
-    });
+    let clock = new THREE.Clock();
 
-    document.getElementById('btn-step').addEventListener('click', stepFlyAI);
-    document.getElementById('btn-reset').addEventListener('click', resetGame);
+    function updateFlyAnimation(elapsed, delta) {
+      if (!flyRig.thorax) return;
 
-    document.getElementById('cam-front').addEventListener('click', () => {
-      controls.autoRotate = false;
-      camera.position.set(0, 10, 480);
-      controls.target.set(0, 0, 0);
-    });
-    document.getElementById('cam-dorsal').addEventListener('click', () => {
-      controls.autoRotate = false;
-      camera.position.set(0, 480, 20);
-      controls.target.set(0, 0, 0);
-    });
-    document.getElementById('cam-iso').addEventListener('click', () => {
-      controls.autoRotate = true;
-      camera.position.set(280, 220, 360);
-      controls.target.set(0, 0, 0);
-    });
+      if (flyRig.pedestal) {
+        flyRig.pedestal.rotation.y += delta * 0.8;
+      }
 
-    /* =========================================================
-       7. Animation Loop & Glow Shader Updating
-       ========================================================= */
-    let lastAITick = Date.now();
-    let restartTimer = 0;
+      let targetHz = 0;
+      if (flyRig.state === 'IDLE') targetHz = 15;
+      else if (flyRig.state === 'SCANNING') targetHz = 85;
+      else if (flyRig.state === 'SAFE_REACTION' || flyRig.state === 'DECIDING') targetHz = 224;
+      else if (flyRig.state === 'BOOM_REACTION') targetHz = 35;
+      else if (flyRig.state === 'VICTORY_DANCE') targetHz = 228;
+
+      flyRig.wingbeatHz += (targetHz - flyRig.wingbeatHz) * 0.15;
+      document.getElementById('fly-wingbeat-text').innerText = Math.round(flyRig.wingbeatHz) + ' Hz';
+
+      flyRig.wingPhase += delta * flyRig.wingbeatHz * 0.35;
+      const flapAngle = Math.sin(flyRig.wingPhase) * (flyRig.wingbeatHz > 40 ? 0.55 : 0.08);
+
+      if (flyRig.leftWingPivot && flyRig.rightWingPivot) {
+        flyRig.leftWingPivot.rotation.z = 0.1 + flapAngle;
+        flyRig.leftWingPivot.rotation.y = 0.4 + flapAngle * 0.4;
+
+        flyRig.rightWingPivot.rotation.z = -0.1 - flapAngle;
+        flyRig.rightWingPivot.rotation.y = -0.4 - flapAngle * 0.4;
+      }
+
+      if (flyRig.abdomen) {
+        const breath = 1.0 + Math.sin(elapsed * 4.5) * 0.05;
+        flyRig.abdomen.scale.set(breath, breath, breath);
+      }
+
+      if (flyRig.leftAntenna && flyRig.rightAntenna) {
+        const twL = Math.sin(elapsed * 12.0) * 0.08 + Math.cos(elapsed * 5.0) * 0.05;
+        const twR = Math.sin(elapsed * 14.0) * 0.08 + Math.sin(elapsed * 7.0) * 0.05;
+        flyRig.leftAntenna.rotation.z = twL;
+        flyRig.rightAntenna.rotation.z = twR;
+      }
+
+      if (flyRig.state === 'IDLE') {
+        flyAvatarGroup.position.set(-30, flyRig.baseY + Math.sin(elapsed * 2.5) * 3.0, 85);
+        flyAvatarGroup.rotation.z = Math.sin(elapsed * 1.5) * 0.03;
+        flyAvatarGroup.rotation.x = Math.cos(elapsed * 1.8) * 0.02;
+        if (flyRig.head) flyRig.head.rotation.y = Math.sin(elapsed * 1.2) * 0.15;
+      } else if (flyRig.state === 'SCANNING') {
+        flyAvatarGroup.position.set(-30, flyRig.baseY + Math.sin(elapsed * 4.0) * 4.0, 85);
+        if (flyRig.head) {
+          flyRig.head.rotation.y = 0.35 + Math.sin(elapsed * 8.0) * 0.08;
+          flyRig.head.rotation.z = 0.12;
+        }
+      } else if (flyRig.state === 'SAFE_REACTION') {
+        flyAvatarGroup.position.set(-30, flyRig.baseY + 5.0 + Math.sin(elapsed * 6.0) * 5.0, 85);
+        if (flyRig.head) flyRig.head.rotation.x = Math.sin(elapsed * 10.0) * 0.2;
+      } else if (flyRig.state === 'BOOM_REACTION') {
+        flyAvatarGroup.position.set(-30, flyRig.baseY + 8.0, 85);
+        flyAvatarGroup.rotation.x = -0.55 + (Math.random() - 0.5) * 0.1;
+        flyAvatarGroup.rotation.z = (Math.random() - 0.5) * 0.1;
+        if (flyRig.sparkGroup) {
+          flyRig.sparkGroup.children.forEach(sp => {
+            sp.visible = Math.random() > 0.4;
+            sp.position.set((Math.random() - 0.5) * 45, (Math.random() - 0.5) * 35, (Math.random() - 0.5) * 35);
+          });
+        }
+      } else if (flyRig.state === 'VICTORY_DANCE') {
+        const loopAngle = elapsed * 3.0;
+        flyAvatarGroup.position.x = -30 + Math.cos(loopAngle) * 45;
+        flyAvatarGroup.position.y = flyRig.baseY + 25 + Math.sin(loopAngle) * 30;
+        flyAvatarGroup.rotation.z = loopAngle;
+        flyAvatarGroup.rotation.y = Math.PI / 2 + Math.cos(loopAngle) * 0.5;
+      }
+
+      if (laserLife > 0.0) {
+        laserLife -= delta * 2.2;
+        laserMat.opacity = Math.max(0.0, laserLife * 0.95);
+      }
+    }
 
     function animate() {
       requestAnimationFrame(animate);
 
-      controls.update();
+      const delta = clock.getDelta();
+      const elapsed = clock.getElapsedTime();
+
+      updateFlyAnimation(elapsed, delta);
       updatePulses();
 
-      // Dynamic Node Glow from current firing state
+      // Dynamic Node Glow
       nodeMeshes.forEach((item, i) => {
         const h = h_activity[i] || 0;
         const absH = Math.abs(h);
         item.mesh.scale.setScalar(1.0 + absH * 0.9);
         item.mesh.material.emissiveIntensity = 0.6 + absH * 2.5;
 
-        // Modulate Arbor Opacity
         if (item.arbor) {
           item.arbor.material.opacity = 0.15 + absH * 0.6;
         }
       });
 
-      // Auto AI loop
-      const now = Date.now();
-      if (autoPlay && !gameOver) {
-        if (now - lastAITick >= 650) {
-          stepFlyAI();
-          lastAITick = now;
-        }
-      } else if (autoPlay && gameOver) {
-        restartTimer += 0.016;
-        if (restartTimer >= 2.0) {
-          resetGame();
-          restartTimer = 0;
-        }
+      camera.position.lerp(targetCamPos, 0.05);
+      controls.target.lerp(targetLookAt, 0.05);
+
+      if (cameraMode === 'DIRECTOR') {
+        const orbitTime = elapsed * 0.35;
+        camera.position.x = -60 + Math.sin(orbitTime) * 320;
+        camera.position.z = 380 + Math.cos(orbitTime) * 160;
+        camera.position.y = 20 + Math.sin(orbitTime * 0.7) * 60;
+        controls.target.set(-50, 10, 0);
       }
 
+      controls.update();
       composer.render();
     }
 
-    // Initialize
-    loadConnectome().then(() => {
-      resetGame();
-      animate();
-    });
-
     function generateFallbackData() {
-      // Minimal circuit structure if json file not reached
       const nodes = [];
       for (let i = 0; i < 80; i++) {
         const role = i < 32 ? 'input' : (i >= 64 ? 'output' : 'interneuron');
         nodes.push({
           id: 10000 + i,
           role,
+          sign: (i % 3 === 0) ? -1 : 1,
           position: [(Math.random() - 0.5) * 40000 + 50000, (Math.random() - 0.5) * 30000 + 25000, (Math.random() - 0.5) * 20000 + 30000]
         });
       }
+      const edges = [];
+      for (let i = 0; i < 80; i++) {
+        for (let k = 0; k < 6; k++) {
+          const t = Math.floor(Math.random() * 80);
+          if (t !== i) edges.push([10000 + i, 10000 + t, 5]);
+        }
+      }
       return {
         nodes,
-        edges: [],
+        edges,
         W_in: Array(32).fill().map(() => Array(36).fill(0.05)),
         W_out: Array(36).fill().map(() => Array(16).fill(0.05)),
         b_out: Array(36).fill(0)
       };
     }
+
+    // Boot Up
+    loadConnectome().then(() => {
+      resetGame();
+      scheduleNextStep();
+      animate();
+    });
   </script>
 </body>
 </html>
