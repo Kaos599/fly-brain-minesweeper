@@ -3,9 +3,19 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)](https://www.python.org/)
 [![Connectome: MaleCNS v1.0](https://img.shields.io/badge/Connectome-MaleCNS_v1.0-orange.svg)](https://male-cns.janelia.org/)
-[![Renderer: Three.js WebGL](https://img.shields.io/badge/Renderer-Three.js_WebGL-purple.svg)](https://threejs.org/)
+[![Renderer: Dual Three.js WebGL](https://img.shields.io/badge/Renderer-Dual_Three.js_WebGL-purple.svg)](https://threejs.org/)
 
-FlySweeper is a bio-computational neuro-AI system where a biological fruit fly (*Drosophila melanogaster*) connectome controls Microsoft Minesweeper, paired with a real-time 3D neural activity HUD.
+FlySweeper is a bio-computational neuro-AI system where a biological fruit fly (*Drosophila melanogaster*) connectome controls Microsoft Minesweeper, paired with an interactive 3D laboratory instrument featuring a mechanical micro-electrode keyboard, a draggable connectome viewport, and physical flight dynamics.
+
+---
+
+## Visualizer & Laboratory Interface
+
+![FlySweeper Scientific Laboratory Visualizer](docs/images/flysweeper_overview.png)
+
+| Real-Time Neural Clearance | Mine Detonation Concussion Blast |
+|:---:|:---:|
+| ![Safe Reveal Gameplay](docs/images/flysweeper_gameplay.png) | ![Mine Detonation Explosion](docs/images/flysweeper_detonation_blast.png) |
 
 ---
 
@@ -15,7 +25,10 @@ Fly-Brain-Minesweeper executes game decision-making through a measured biologica
 
 * **80 Biological Neurons**: 32 Lobula Columnar visual inputs (LC4, LC11, LC15, LPLC2), 32 central neuropil interneurons (PVLP, AVLP), and 16 descending motor neurons (DNp01, pIP1).
 * **1,296 Directed Synaptic Contacts**: Preserves physical contact densities and biological neurotransmitter signs (Acetylcholine: +1, GABA/Glutamate: -1).
-* **High-Density 3D Brain HUD**: Real-time WebGL and Three.js visualization with a translucent neuropil silhouette, recursive dendritic arborizations, and action potential pulse propagation.
+* **Interactive 3D Micro-Electrode Keyboard**: Angled 6x6 tactile mechanical key matrix with matte zinc keycaps, coordinate typography, and physical spring depression. Keys support direct hover and click via Three.js raycasting.
+* **Dedicated Draggable 3D Connectome**: Independent interactive Three.js brain module positioned at the top of the right sidebar, featuring role-coded neurons (Sensory: Cyan, Central: Silver, Motor: Emerald), directed EM synapses, real-time action potential pulses, and full 3D rotation and zoom controls.
+* **Physical Drosophila Flight Rig**: Anatomical 3D fly perching above the arena, executing parabolic swoop trajectories down to the chosen key, tapping with proboscis/tarsus, and recovering to perch (with instant `Fly: ON/OFF` visibility toggle).
+* **Physical Mine Detonation Blast**: Full-scale explosive blast with keycap ejection, thermal molten crater, planar shockwave ring, 250+ physics-driven sparks, screen concussion shake, fly blast reaction, and synthesized sub-bass audio.
 * **Evolutionary Readout Optimization**: Trained via Cross-Entropy Method (CEM) on the biological reservoir, reaching 96.4% safe reveals and a 50.0% win rate on beginner boards.
 
 ---
@@ -98,23 +111,24 @@ The complete MaleCNS v1.0 connectome contains 166,700 neurons and over 124 milli
    Feeding a 36-dimensional sensory observation (a 6x6 grid) into a 166,000-dimensional recurrent dynamical reservoir induces extreme signal dilution. Without extensive task-specific synaptic pruning, the sensory input vanishes into biological background noise. The 80-neuron circuit concentrates stimulus propagation through high-affinity synaptic pathways.
 
 4. **WebGL Client-Side Rendering Limits**:
-   Rendering 166,700 full dendritic morphology meshes and millions of dynamic action potential pulses crashes consumer browser WebGL contexts. The 80-neuron circuit with 1,296 synapses and recursive fractal arborizations renders smoothly at 60 FPS in Three.js with full post-processing bloom.
+   Rendering 166,700 full dendritic morphology meshes and millions of dynamic action potential pulses crashes consumer browser WebGL contexts. The 80-neuron circuit with 1,296 synapses and dual WebGL viewports renders smoothly at 60 FPS in Three.js with full post-processing bloom.
 
 ---
 
 ## Quick Start
 
-### 1. WebGL 3D Brain Visualizer
+### 1. WebGL 3D Laboratory Visualizer
 Start the local server and open the browser interface:
 
 ```bash
 python serve.py
 ```
 
-Open http://localhost:8000/web_visualizer.html in Chrome, Edge, or Brave.
-* Drag to rotate camera in 3D.
-* Scroll to zoom.
-* Toggle between auto-play AI, step mode, or manual board clicks.
+Open http://localhost:8000/web_visualizer.html in Chrome, Edge, or Brave:
+* **Interactive 3D Keyboard**: Click directly on keys to make moves, or watch the biological fly swoop down and tap them.
+* **Draggable 3D Brain Viewport**: Click and drag inside the sidebar connectome card to rotate the biological brain in 3D, and scroll to zoom.
+* **Detonation Blast**: Uncovering a mine triggers a physical keycap explosion, shockwave, debris particles, screen shake, and fly concussion.
+* **Fly Toggle**: Toggle the 3D fly avatar on or off using the `Fly: ON/OFF` button in the header.
 
 ### 2. Desktop Pygame Interface
 Run the native desktop window:
