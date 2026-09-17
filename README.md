@@ -5,7 +5,7 @@
 [![Connectome: MaleCNS v1.0](https://img.shields.io/badge/Connectome-MaleCNS_v1.0-orange.svg)](https://male-cns.janelia.org/)
 [![Renderer: Dual Three.js WebGL](https://img.shields.io/badge/Renderer-Dual_Three.js_WebGL-purple.svg)](https://threejs.org/)
 
-FlySweeper is a bio-computational neuro-AI system where a biological fruit fly (*Drosophila melanogaster*) connectome controls Microsoft Minesweeper, paired with an interactive 3D laboratory instrument featuring a mechanical micro-electrode keyboard, a draggable connectome viewport, and physical flight dynamics.
+FlySweeper is a bio-computational neuro-AI system where a biological fruit fly (*Drosophila melanogaster*) connectome controls Minesweeper, paired with an interactive 3D laboratory instrument featuring a mechanical micro-electrode keyboard, a draggable connectome viewport, and physical flight dynamics.
 
 ---
 
